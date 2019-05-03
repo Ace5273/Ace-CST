@@ -1,4 +1,6 @@
 import math
+from arcade import Color, draw_point, draw_line 
+from arcade.color import BLACK
 
 class Point():
     """
@@ -26,7 +28,7 @@ class Point():
         return self.list[0]
 
     @x.setter
-    def x(self, value):
+    def x(self, value) -> float:
         self.list[0] = value
 
     @property
@@ -210,6 +212,8 @@ class Point():
         if other.__class__.__name__  in type_lst:
             getattr(new_point, action + '_number')(other)
             return new_point
+        
+        raise TypeError("Not supported")
 
     def __pos__(self):
         return Point.duplicate(self)
@@ -254,6 +258,22 @@ class Point():
 
     # endregion
 
+    def draw(self, color: Color = BLACK, size: float = 10):
+        """
+        Draw the point on the screen
+
+        Args:
+            color: The color of the point
+            size: The size of the point
+
+        Return:
+            None
+        """
+
+        draw_point(self.x, self.y, color, size)
+    
+    def draw_line(self, point, color: Color = BLACK, size: float = 5):
+        draw_line(self.x, self.y, point.x, point.y, color, size)
 
 class Vector():
     """
@@ -438,6 +458,7 @@ class Vector():
         return list(map(lambda i: i.get_list(), self.list))
     
     #region Arithemetic Functions
+
     def add_vector(self, vector):
         """
         Add an other vector's coordinates to this vector coordinates
@@ -611,6 +632,8 @@ class Vector():
         if other.__class__.__name__  in type_lst:
             getattr(new_vector, action + '_number')(other)
             return new_vector
+        
+        raise TypeError("Not supported")
 
     def __pos__(self):
         return Vector.duplicate(self)
@@ -631,7 +654,6 @@ class Vector():
         return self - other
 
     def __mul__(self, other):
-
         return self.__do__('mul', other)
 
     def __rmul__(self, other):
