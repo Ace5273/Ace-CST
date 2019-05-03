@@ -9,7 +9,8 @@
             "type": "python",
             "request": "launch",
             "program": "C:\\Users\\ACE\\Desktop\\Ace Code\\CartPole Challenge\\Cart Pole Challange Game.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "debugStdLib": true
         }
     ]
 }
