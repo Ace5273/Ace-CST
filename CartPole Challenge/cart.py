@@ -63,4 +63,4 @@ class Cart(GameObject):
             
         super().on_update(delta_time)
 
-        self.pole.position = self.position
+        # self.pole.position = self.position
