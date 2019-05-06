@@ -5,7 +5,7 @@ from cart import Cart, Pole
 class CartPoleChallangeGame(BaseGame):
     def __init__(self):
         super().__init__(width= 600, height= 400)
-        Pole(300,200)
-        # Cart(ArrowKeyboard, 300, 200)
+        # Pole(300,200)
+        Cart(ArrowKeyboard, 300, 200)
 
 CartPoleChallangeGame().run()
