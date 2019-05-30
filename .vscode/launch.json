@@ -5,6 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Bot Learning",
+            "type": "python",
+            "request": "launch",
+            "program": "C:\\Users\\ACE\\Desktop\\Ace Code\\BotLearn\\game.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
             "name": "CartPole Challenge",
             "type": "python",
             "request": "launch",
