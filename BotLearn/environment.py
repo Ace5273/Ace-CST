@@ -12,7 +12,7 @@ class QBot(GameObject):
 
 
     def __init__(self, keyboard :BotKeyboard, game_objects, learning_rate = 0.01, discount_rate = 0.95, exploration_rate = 0.9, exploration_decay_rate = 0.95):
-
+        super().__init__()
         self.keyboard = keyboard
         self.game_objects = game_objects
         self.learning_rate = learning_rate
@@ -40,8 +40,8 @@ class QBot(GameObject):
         if random.uniform(0, 1) < self.exploration_rate:
             self.exploration_rate *= self.exploration_decay_rate
             self.keyboard.press_key_by_index(random.randint(0, len(self.keyboard) - 1))
-        else:
-            np.argmax(q_table[state])
+        # else:
+        #     np.argmax(q_table[state])
     
 
 
