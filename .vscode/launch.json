@@ -15,7 +15,7 @@
             "name": "Bot Learning",
             "type": "python",
             "request": "launch",
-            "program": "C:\\Users\\ACE\\Desktop\\Ace Code\\BotLearn\\game.py",
+            "program": "C:\\Users\\sagic\\Desktop\\Ace-Code\\BotLearn\\game.py",
             "console": "integratedTerminal",
             "justMyCode": false
         },

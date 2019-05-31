@@ -1,15 +1,9 @@
-from help_classes.keyboard import BotKeyboard
+from help_classes.keyboard import BotKeyboard, BaseBotKeyboard
 from help_classes.base_game import GameObject
 import random
 import numpy as np
 
-
-class Enviroment():
-    def __init__(self):
-        pass
-
-class QBot(GameObject):
-
+class QAi():
 
     def __init__(self, keyboard :BotKeyboard, game_objects, learning_rate = 0.01, discount_rate = 0.95, exploration_rate = 0.9, exploration_decay_rate = 0.95):
         super().__init__()
@@ -44,4 +38,8 @@ class QBot(GameObject):
         #     np.argmax(q_table[state])
     
 
+
+class Enviroment(GameObject):
+    def __init__(self):
+        self.Ai = QAi(BaseBotKeyboard, [])
 
