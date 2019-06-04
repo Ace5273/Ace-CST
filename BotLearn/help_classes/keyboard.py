@@ -51,8 +51,6 @@ class KeyHelper():
 
 class BaseKeyboard(ABC):
 
-    keys = None
-
     def __init__(self, **keys):
         self.keys = keys
         pass
@@ -68,6 +66,9 @@ class BaseKeyboard(ABC):
     @abstractmethod
     def is_key_releasing(self, key):
         pass
+    
+    def __len__(self):
+        return len(self.keys)
     
     def get_amount_of_keys(self):
         return len(self.keys)
@@ -99,6 +100,9 @@ class BotKeyboard(BaseKeyboard):
     def is_key_releasing(self, key):
         return KeyHelper.is_releasing_key(self.keys[key])
     
+    def get_key_by_index(self, index: int):
+        return list(self.keys.keys())[index]
+    
     def press_key(self, key: str):
 
         if self.is_key_pressed_down(key):
@@ -109,7 +113,7 @@ class BotKeyboard(BaseKeyboard):
         self.keys[key] = True
     
     def press_key_by_index(self, index: int):
-        press_key(self.keys.keys[index])
+        self.press_key(self.get_key_by_index(index))
     
     def release_key(self, key: str):
 
@@ -121,14 +125,14 @@ class BotKeyboard(BaseKeyboard):
         self.keys[key] = False
     
     def release_key_by_index(self, index: int):
-        release_key(self.keys.keys[index])
+        self.release_key(self.get_key_by_index(index))
     
     def press_all(self):
-        for key in self.keys.keys:
+        for key in self.keys:
             self.press_key(key)
     
     def release_all(self):
-        for key in self.keys.keys:
+        for key in self.keys:
             self.release_key(key)
 
 WASDKeyboard    = PlayerKeyboard(up = key.W, down = key.S, left = key.A, right = key.D)
