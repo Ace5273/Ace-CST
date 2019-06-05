@@ -111,8 +111,8 @@ class BotKeyboard(BaseKeyboard):
 
         self.keys[key] = True
     
-    def press_key_by_index(self, index: int):
-        self.press_key(self.keys.keys[index])
+    # def press_key_by_index(self, index: int):
+    #     self.press_key(self.keys.keys[index])
     
     def release_key(self, key: str):
 
@@ -123,8 +123,8 @@ class BotKeyboard(BaseKeyboard):
 
         self.keys[key] = False
     
-    def release_key_by_index(self, index: int):
-        self.release_key(self.keys.keys[index])
+    # def release_key_by_index(self, index: int):
+    #     self.release_key(self.keys.keys[index])
     
     def press_all(self):
         for key in self.keys.keys:
@@ -134,17 +134,17 @@ class BotKeyboard(BaseKeyboard):
         for key in self.keys.keys:
             self.release_key(key)
     
-    def get_pressed_by_index(self):
-        pressed = []
-        num = 0
-        for key in self.keys.keys:
-            num += 1
-            pressed.append(num)
+    # def get_pressed_by_index(self):
+    #     pressed = []
+    #     num = 0
+    #     for key in self.keys.keys:
+    #         num += 1
+    #         pressed.append(num)
         
-        return pressed
+    #     return pressed
     
-    def __len__(self):
-        return len(self.keys)
+    # def __len__(self):
+    #     return len(self.keys)
 
 WASDKeyboard    = PlayerKeyboard(up = key.W, down = key.S, left = key.A, right = key.D)
 ArrowKeyboard   = PlayerKeyboard(up = key.UP, down = key.DOWN, left = key.LEFT, right = key.RIGHT)
