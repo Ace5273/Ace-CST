@@ -2,8 +2,11 @@
   "ExpandedNodes": [
     "",
     "\\BotLearn",
+    "\\BotLearn\\content",
+    "\\BotLearn\\content\\Sprites",
+    "\\BotLearn\\help_classes",
     "\\help_classes"
   ],
-  "SelectedNode": "\\BotLearn\\game_objects.py",
+  "SelectedNode": "\\BotLearn\\content\\Sprites",
   "PreviewInSolutionExplorer": false
 }
