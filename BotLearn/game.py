@@ -9,7 +9,7 @@ class BotGame(BaseGame):
         super().__init__(800,600,background_color = WHITE, update_rate = 1)
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
         Enviroment(self.get_size()[0],self.get_size()[1])
-        self.set_update_rate(1)
+        self.set_update_rate(1/30)
 
 
 if __name__ == "__main__":
