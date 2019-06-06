@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 class MatrixBasedGameObject(GameObject, ABC):
     
-    def __init__(self, pos_x, pos_y, environment):
+    def __init__(self, pos_x : int, pos_y :int, environment):
         super().__init__()
         self.environment = environment
         self.pos_x = pos_x
@@ -14,74 +14,87 @@ class MatrixBasedGameObject(GameObject, ABC):
     
     @property
     @abstractmethod
-    def pos_x(self):
+    def pos_x(self) -> int:
         pass
     
     @pos_x.setter
     @abstractmethod
-    def pos_x(self, value):
+    def pos_x(self, value : int):
         pass
 
     @property
     @abstractmethod
-    def pos_y(self):
+    def pos_y(self) -> int:
         pass
     
     @pos_y.setter
     @abstractmethod
-    def pos_y(self, value):
+    def pos_y(self, value : int):
         pass
     
     @property
-    def width(self):
+    def env_width(self):
         return self.environment.width
     
     @property
-    def height(self):
+    def env_height(self):
         return self.environment.height
     
     @property
-    def rows(self):
+    def mat_rows(self):
         return self.environment.rows
     
     @property
-    def cols(self):
+    def mat_cols(self):
         return self.environment.cols
 
 
-class SpriteMatrixObject(MatrixBasedGameObject):
+class SpriteMatrixObject(MatrixBasedGameObject, ABC):
     
     def __init__(self, pos_x, pos_y, environment, url):
 
         self.sprite : Sprite = LoadSprite(url)
         super().__init__(pos_x, pos_y, environment)
 
-        # self.sprite._set_center_x((pos_x+0.5)*mat_width / mat_cols)
-        # self.sprite._set_center_y((pos_y+0.5)*mat_height / mat_rows)
-
-        self.sprite._set_width(self.width / self.cols)
-        self.sprite._set_height(self.height / self.rows)
+        self.sprite._set_width(self.env_width / self.mat_cols)
+        self.sprite._set_height(self.env_height / self.mat_rows)
 
     @property
-    def pos_x(self):
-        return self.sprite._get_center_x() * self.cols / self.width - 0.5
+    def pos_x(self) -> int:
+        return int(self.sprite._get_center_x() * self.mat_cols / self.env_width - 0.5)
     
     @pos_x.setter
-    def pos_x(self, value):
-        if value >= 0 and value < self.cols:
-            self.sprite._set_center_x((value + 0.5)*self.width / self.cols)
+    def pos_x(self, value:int):
+        if value >= 0 and value < self.mat_cols:
+            self.sprite._set_center_x((value + 0.5)*self.env_width / self.mat_cols)
 
     @property
-    def pos_y(self):
-        return self.sprite._get_center_y() * self.rows / self.height - 0.5
+    def pos_y(self) -> int:
+        return int(self.sprite._get_center_y() * self.mat_rows / self.env_height - 0.5)
     
     @pos_y.setter
-    def pos_y(self, value):
-        if value >= 0 and value < self.rows:
-            self.sprite._set_center_y((value + 0.5)*self.height / self.rows)
+    def pos_y(self, value: int):
+        if value >= 0 and value < self.mat_rows:
+            self.sprite._set_center_y((value + 0.5)*self.env_height / self.mat_rows)
 
     def on_draw(self):
         self.sprite.draw()
+
+class SpriteEnvironmentObject(SpriteMatrixObject, ABC):
+    def __init__(self, pos_x, pos_y, environment, url, reward, id):
+        super().__init__(pos_x, pos_y, environment, url)
+        self.reward = reward
+        self._id    = id
+        self.environment.add_object(self)
+    
+    @property
+    def id(self) -> int:
+        return self._id
+
+class Candy(SpriteEnvironmentObject):
+    def __init__(self, pos_x, pos_y, environment):
+        super().__init__(pos_x, pos_y, environment, 'Candy.png', 5, 1)
+        
 
 class PlayerMatrixObject(SpriteMatrixObject):
     def __init__(self, pos_x, pos_y, environment, url, keyboard: BaseBotKeyboard):

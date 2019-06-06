@@ -12,6 +12,14 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Bot Learning2",
+            "type": "python",
+            "request": "launch",
+            "program": "C:\\Users\\sagic\\Desktop\\Ace-Code\\BotLearn\\game.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
             "name": "Bot Learning",
             "type": "python",
             "request": "launch",

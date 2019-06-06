@@ -1,9 +1,8 @@
 from help_classes.keyboard import BotKeyboard, BaseBotKeyboard , ArrowKeyboard
 from help_classes.base_game import GameObject
-from game_objects import PlayerMatrixObject
+from game_objects import PlayerMatrixObject, SpriteEnvironmentObject, Candy
 from arcade.draw_commands import draw_line, draw_circle_filled
 from arcade.color import BLACK, GREEN, RED, BLUE, METALLIC_SUNBURST
-from enum import Enum
 import random
 import numpy as np 
 
@@ -53,13 +52,16 @@ class Enviroment(GameObject):
         self.rows = rows
         self.cols = cols
 
-        self.obj_locations = np.zeros((rows, cols), int)
+        self.EnvObjectLocations = np.zeros((rows, cols), int)
         self.lines = []
 
         self.build_line_array(width,height,cols,rows)
-        self.define_enviroment()
+        # self.define_enviroment()
         
-        self.Baby = QAi(0,0,self,'baby.png', ArrowKeyboard, self.enviroment_objects_rewards())
+        self.Baby = QAi(0,0,self,'Baby.png', ArrowKeyboard)
+        Candy(2,3, self)
+        # SpriteEnvironmentObject(1,2,self,'Candy.png', 5)
+        # QAi(0,1,self,'Candy.png', ArrowKeyboard, self.enviroment_objects_rewards())
 
     def build_line_array(self,width, height, col_num, row_num):
 
@@ -74,20 +76,24 @@ class Enviroment(GameObject):
                                 j*(height-1)/row_num,
                                 width,
                                 j*(height-1)/row_num])
-    
+
     def enviroment_objects_rewards(self):
         return [-1, 0, -1,5,10,10]
 
-    def define_enviroment(self):
+    def add_object(self, obj : SpriteEnvironmentObject):
+        self.EnvObjectLocations[obj.pos_x][obj.pos_y] = obj.id
 
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.obj_locations[row][col] = 0
 
-        self.obj_locations[0][0] = 1
-        self.obj_locations[1][1] = 2
-        self.obj_locations[3][1] = 3
-        self.obj_locations[3][3] = 4
+    # def define_enviroment(self):
+
+    #     # for row in range(self.rows):
+    #     #     for col in range(self.cols):
+    #     #         self.obj_locations[row][col] = 0
+
+    #     self.EnvObjectLocations[0][0] = 1
+    #     self.EnvObjectLocations[1][1] = 2
+    #     self.EnvObjectLocations[3][1] = 3
+    #     self.EnvObjectLocations[3][3] = 4
 
     #def on_update(self,delta_time):
 
@@ -105,29 +111,4 @@ class Enviroment(GameObject):
     def on_draw(self):
         for line in self.lines:
             draw_line(line[0],line[1],line[2],line[3],BLACK,5)
-        
-        #for row in range(self.rows):
-        #    for col in range(self.cols):
-
-        #        curr_enviroment_object = self.enviroment[row][col]
-        #        center_x = (row + 0.5) * self.width/self.cols
-        #        center_y = (col + 0.5) * self.height/self.rows
-
-        #        if curr_enviroment_object == 2:
-        #            draw_circle_filled(center_x, center_y, \
-        #                min(self.width, self.height)/(max(self.rows,self.cols)*2), BLACK)
-
-        #        if curr_enviroment_object == 1:
-        #            draw_circle_filled(center_x, center_y, \
-        #                min(self.width, self.height)/(max(self.rows,self.cols)*2), GREEN)
-                
-        #        if curr_enviroment_object == 3:
-        #            draw_circle_filled(center_x, center_y, \
-        #                min(self.width, self.height)/(max(self.rows,self.cols)*2), RED)
-                
-        #        if curr_enviroment_object == 4:
-        #            draw_circle_filled(center_x, center_y, \
-        #                min(self.width, self.height)/(max(self.rows,self.cols)*2), BLUE)
-        
-        #self.AI.draw()
 
