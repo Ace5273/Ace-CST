@@ -81,7 +81,7 @@ class SpriteMatrixObject(MatrixBasedGameObject, ABC):
         self.sprite.draw()
 
 class SpriteEnvironmentObject(SpriteMatrixObject, ABC):
-    def __init__(self, pos_x, pos_y, environment, url, reward, id):
+    def __init__(self, pos_x, pos_y, environment, url, reward , id):
         super().__init__(pos_x, pos_y, environment, url)
         self.reward = reward
         self._id    = id
@@ -91,9 +91,25 @@ class SpriteEnvironmentObject(SpriteMatrixObject, ABC):
     def id(self) -> int:
         return self._id
 
+class Start(SpriteEnvironmentObject):
+    def __init__(self, pos_x, pos_y, environment):
+        super().__init__(pos_x, pos_y, environment, 'Start.png', -1, 1)
+
 class Candy(SpriteEnvironmentObject):
     def __init__(self, pos_x, pos_y, environment):
-        super().__init__(pos_x, pos_y, environment, 'Candy.png', 5, 1)
+        super().__init__(pos_x, pos_y, environment, 'Candy.png', 5, 2)
+
+class Poison(SpriteEnvironmentObject):
+    def __init__(self, pos_x, pos_y, environment):
+        super().__init__(pos_x, pos_y, environment, 'Poison.png', -2, 3)
+
+class Death(SpriteEnvironmentObject):
+    def __init__(self, pos_x, pos_y, environment):
+        super().__init__(pos_x, pos_y, environment, 'Death.png', -50, 4)
+
+class Success(SpriteEnvironmentObject):
+    def __init__(self, pos_x, pos_y, environment):
+        super().__init__(pos_x, pos_y, environment, 'Success.png', 100, 5)
         
 
 class PlayerMatrixObject(SpriteMatrixObject):

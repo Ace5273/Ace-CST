@@ -111,8 +111,12 @@ class BotKeyboard(BaseKeyboard):
 
         self.keys[key] = True
     
-    # def press_key_by_index(self, index: int):
-    #     self.press_key(self.keys.keys[index])
+    def press_key_by_index(self, index: int):
+        temp = 0
+        for key in self.keys.keys:
+            if temp == index:
+                self.press_key(key)
+                return
     
     def release_key(self, key: str):
 
@@ -126,9 +130,9 @@ class BotKeyboard(BaseKeyboard):
     # def release_key_by_index(self, index: int):
     #     self.release_key(self.keys.keys[index])
     
-    def press_all(self):
-        for key in self.keys.keys:
-            self.press_key(key)
+    # def press_all(self):
+    #     for key in self.keys.keys:
+    #         self.press_key(key)
     
     def release_all(self):
         for key in self.keys.keys:

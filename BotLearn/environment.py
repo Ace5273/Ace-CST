@@ -1,6 +1,6 @@
 from help_classes.keyboard import BotKeyboard, BaseBotKeyboard , ArrowKeyboard
 from help_classes.base_game import GameObject
-from game_objects import PlayerMatrixObject, SpriteEnvironmentObject, Candy
+from game_objects import PlayerMatrixObject, SpriteEnvironmentObject, Start , Candy, Poison, Death, Success
 from arcade.draw_commands import draw_line, draw_circle_filled
 from arcade.color import BLACK, GREEN, RED, BLUE, METALLIC_SUNBURST
 import random
@@ -8,21 +8,28 @@ import numpy as np
 
 class QAi(PlayerMatrixObject):
 
-    def __init__(self,pos_x, pos_y, enviroment, url, keyboard, game_objects, learning_rate = 0.01, \
-                    discount_rate = 0.95, exploration_rate = 0.9, exploration_decay_rate = 0.95):
-        super().__init__(pos_x, pos_y, enviroment, url, keyboard)
-        self.game_objects = game_objects
+    def __init__(self,pos_x, pos_y, environment, url, keyboard, learning_rate = 0.01, \
+                    discount_rate = 1, exploration_rate = 0.999, exploration_decay_rate = 0.99):
+        super().__init__(pos_x, pos_y, environment, url, keyboard)
+        self.org_pos_x = pos_x
+        self.org_pos_y = pos_y
         self.learning_rate = learning_rate
         self.discount_rate = discount_rate
         self.exploration_rate = exploration_rate
         self.exploration_decay_rate = exploration_decay_rate
-        self.Qlearning_Table = np.zeros((len(keyboard),len(game_objects)))
+        self.Qlearning_Table = np.zeros((len(keyboard),self.environment.get_objects_amount()))
+        Start(pos_x, pos_y, environment)
     
+    def reset(self):
+        self.pos_x = self.org_pos_x
+        self.pos_y = self.org_pos_y
+        self.exploration_rate *= self.exploration_decay_rate
+
     def update_q_table(self, action, old_state, new_state):
 
-        current_q_value = self.Qlearning_Table[action][old_state]
-        reward          = self.game_objects[new_state]
-        future_reward   = self.discount_rate * np.max(self.Qlearning_Table[:][new_state])
+        current_q_value = self.Qlearning_Table[action,old_state]
+        reward          = self.environment.reward(self.pos_x, self.pos_y)
+        future_reward   = self.discount_rate * np.max(self.Qlearning_Table[:,new_state])
 
         self.Qlearning_Table[action, old_state] = current_q_value + self.learning_rate * (
                             reward + 
@@ -32,19 +39,41 @@ class QAi(PlayerMatrixObject):
     
     def decide_on_action(self, curr_state):
 
+        key_index = None
+        rnd_value = random.uniform(0, 1)
         self.keyboard.release_all()
 
-        if random.uniform(0, 1) <= self.exploration_rate:
+        if rnd_value <= self.exploration_rate:
             # Imma explore the area
-            self.exploration_rate *= self.exploration_decay_rate
-            self.keyboard.press_key_by_index(random.randint(0, self.keyboard.get_amount_of_keys() - 1))
+            key_index = random.randint(0, len(self.keyboard) - 1)
         else:
             # Imma exploit the area
-            best_key = np.argmax(self.Qlearning_Table[:][curr_state])
-            self.keyboard.press_key_by_index(best_key)
+            key_index = np.argmax(self.Qlearning_Table[:,curr_state])
+        
+        self.keyboard.press_key_by_index(key_index)
+
+        return key_index
+    
+    def on_update(self,delta_time):
+
+       curr_state = self.environment.state(self.pos_x, self.pos_y)
+
+       if curr_state in [4,5]:
+           self.reset()
+           return
+
+       action = self.decide_on_action(curr_state)
+       super().on_update(delta_time)
+       new_state = self.environment.state(self.pos_x, self.pos_y)
+
+       if curr_state == new_state:
+           return
+
+       self.update_q_table(action, curr_state, new_state)
+
 
 class Enviroment(GameObject):
-    def __init__(self, width, height, rows = 5, cols = 4):
+    def __init__(self, width, height, cols = 3, rows = 3):
         super().__init__()
 
         self.width = width
@@ -52,16 +81,16 @@ class Enviroment(GameObject):
         self.rows = rows
         self.cols = cols
 
-        self.EnvObjectLocations = np.zeros((rows, cols), int)
+        self.EnvObjectLocations = np.zeros((cols, rows), object)
         self.lines = []
 
         self.build_line_array(width,height,cols,rows)
-        # self.define_enviroment()
         
-        self.Baby = QAi(0,0,self,'Baby.png', ArrowKeyboard)
-        Candy(2,3, self)
-        # SpriteEnvironmentObject(1,2,self,'Candy.png', 5)
-        # QAi(0,1,self,'Candy.png', ArrowKeyboard, self.enviroment_objects_rewards())
+        self.Baby = QAi(0,0,self,'Baby.png', BaseBotKeyboard)
+        Candy(0,2, self)
+        Poison(2,0,self)
+        Death(1,1,self)
+        Success(2,2,self)
 
     def build_line_array(self,width, height, col_num, row_num):
 
@@ -77,36 +106,23 @@ class Enviroment(GameObject):
                                 width,
                                 j*(height-1)/row_num])
 
-    def enviroment_objects_rewards(self):
-        return [-1, 0, -1,5,10,10]
-
     def add_object(self, obj : SpriteEnvironmentObject):
-        self.EnvObjectLocations[obj.pos_x][obj.pos_y] = obj.id
-
-
-    # def define_enviroment(self):
-
-    #     # for row in range(self.rows):
-    #     #     for col in range(self.cols):
-    #     #         self.obj_locations[row][col] = 0
-
-    #     self.EnvObjectLocations[0][0] = 1
-    #     self.EnvObjectLocations[1][1] = 2
-    #     self.EnvObjectLocations[3][1] = 3
-    #     self.EnvObjectLocations[3][3] = 4
-
-    #def on_update(self,delta_time):
-
-    #    curr_state = self.enviroment[self.AI.pos_x][self.AI.pos_y]
-
-    #    self.AI.decide_on_action(curr_state)
-    #    self.AI.update()
-
-    #    new_state = self.enviroment[self.AI.pos_x][self.AI.pos_y]
-
-    #    self.AI.update_q_table(self.AI.action, curr_state, new_state)
-
-    #    pass
+        self.EnvObjectLocations[obj.pos_x,obj.pos_y] = obj
+    
+    def get_objects_amount(self):
+        return 6
+    
+    def reward(self, pos_x : int, pos_y : int):
+        curr_obj = self.EnvObjectLocations[pos_x,pos_y]
+        if curr_obj == 0 or curr_obj == None:
+            return -1
+        return self.EnvObjectLocations[pos_x,pos_y].reward
+    
+    def state(self, pos_x : int, pos_y : int):
+        curr_obj = self.EnvObjectLocations[pos_x,pos_y]
+        if curr_obj == 0 or curr_obj == None:
+            return 0
+        return self.EnvObjectLocations[pos_x,pos_y].id
     
     def on_draw(self):
         for line in self.lines:

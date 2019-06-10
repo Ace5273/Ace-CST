@@ -95,19 +95,19 @@ class BotKeyboard(BaseKeyboard):
         return self.keys[key]
     
     def is_key_pressing(self, key):
-        return key in self.pressing_key
+        return KeyHelper.is_pressing_key(self.keys[key])
+
     def is_key_releasing(self, key):
-        return key in self.releasing_key
+        return KeyHelper.is_releasing_key(self.keys[key])
     
     def get_key_by_index(self, index: int):
         return list(self.keys.keys())[index]
     
     def press_key(self, key: str):
 
-        if not self.is_key_pressed_down(key):
+        if self.is_key_pressed_down(key):
             self.pressing_key.add(key)
-            self.releasing_key.discard(key)
-        else:
+        elif key in pressing_key:
             self.pressing_key.discard(key)
 
         self.keys[key] = True
@@ -117,10 +117,9 @@ class BotKeyboard(BaseKeyboard):
     
     def release_key(self, key: str):
 
-        if self.is_key_pressed_down(key):
+        if not self.is_key_pressed_down(key):
             self.releasing_key.add(key)
-            self.pressing_key.discard(key)
-        else:
+        elif key in releasing_key:
             self.releasing_key.discard(key)
 
         self.keys[key] = False
