@@ -7,8 +7,8 @@ class CartPoleChallangeGame(BaseGame):
         super().__init__(width= 1200, height= 400)
         Enviroment()
         # Pole(300,200)
-        # Cart(ArrowKeyboard)
+        Cart(ArrowKeyboard)
         # AICart()
-        BotCart()
+        # BotCart()
 
 CartPoleChallangeGame().run()
