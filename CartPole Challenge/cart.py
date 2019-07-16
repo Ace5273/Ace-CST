@@ -17,7 +17,7 @@ class Enviroment():
         Enviroment.gravity          = 1.2
         Enviroment.friction         = 0.001
         Enviroment.pole_length      = 200
-        Enviroment.pole_mass        = 0.001
+        Enviroment.pole_mass        = 2
         Enviroment.pole_start_angle = 90
         Enviroment.cart_mass        = 20
         Enviroment.cart_position_x  = 600

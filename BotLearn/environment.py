@@ -10,7 +10,7 @@ import numpy as np
 class QAi(PlayerMatrixObject):
 
     def __init__(self, pos_x, pos_y, environment, url, keyboard, learning_rate=0.01,
-                 discount_rate=1, exploration_rate=0.999, exploration_decay_rate=0.99):
+                 discount_rate=1, exploration_rate=0.7, exploration_decay_rate=0.99):
         super().__init__(pos_x, pos_y, environment, url, keyboard)
         self.org_pos_x = pos_x
         self.org_pos_y = pos_y
