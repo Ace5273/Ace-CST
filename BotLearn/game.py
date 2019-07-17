@@ -6,7 +6,7 @@ import os
  
 class BotGame(BaseGame):
     def __init__(self):
-        super().__init__(800,600,background_color = WHITE, update_rate = 1)
+        super().__init__(1280,800,background_color = WHITE, update_rate = 1)
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
         Enviroment(self.get_size()[0],self.get_size()[1])
         self.set_update_rate(1/30)

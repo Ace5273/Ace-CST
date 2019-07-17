@@ -128,7 +128,7 @@ class Candy(SpriteEnvironmentObject):
 
 class Poison(SpriteEnvironmentObject):
     def __init__(self, pos_x, pos_y, environment):
-        super().__init__(pos_x, pos_y, environment, 'Poison.png', -2)
+        super().__init__(pos_x, pos_y, environment, 'Poison.png', -5)
 
 class Death(SpriteEnvironmentObject):
     def __init__(self, pos_x, pos_y, environment):

@@ -1,5 +1,6 @@
-from help_classes.keyboard import BotKeyboard, BaseBotKeyboard, ArrowKeyboard
+from help_classes.keyboard import KeyHelper, BotKeyboard, BaseBotKeyboard, ArrowKeyboard
 from help_classes.base_game import GameObject
+from arcade import key
 from game_objects import PlayerMatrixObject, Start, Candy, Poison, Death, Success, Blank
 from arcade.draw_commands import draw_line, draw_circle_filled
 from arcade.color import BLACK, GREEN, RED, BLUE, METALLIC_SUNBURST
@@ -9,8 +10,8 @@ import numpy as np
 
 class QAi(PlayerMatrixObject):
 
-    def __init__(self, pos_x, pos_y, environment, url, keyboard, learning_rate=0.01,
-                 discount_rate=1, exploration_rate=0.7, exploration_decay_rate=0.99):
+    def __init__(self, pos_x, pos_y, environment, url, keyboard, learning_rate=0.9,
+                 discount_rate=0.95, exploration_rate=0.99, exploration_decay_rate=0.99):
         super().__init__(pos_x, pos_y, environment, url, keyboard)
         self.org_pos_x = pos_x
         self.org_pos_y = pos_y
@@ -21,11 +22,16 @@ class QAi(PlayerMatrixObject):
         self.Qlearning_Table = np.zeros(
             (len(keyboard), self.environment.rows * self.environment.cols))
         Start(pos_x, pos_y, environment)
+        self.stop = False
+        self.BabyKilled = 0
 
-    def reset(self):
+    def reset(self, object):
         self.pos_x = self.org_pos_x
         self.pos_y = self.org_pos_y
         self.exploration_rate *= self.exploration_decay_rate
+
+        if isinstance(object,Death):
+            self.BabyKilled += 1
 
     def update_q_table(self, action, old_state, new_state):
 
@@ -59,10 +65,16 @@ class QAi(PlayerMatrixObject):
 
     def on_update(self, delta_time):
 
+        if KeyHelper.is_key_pressed_down(key.SPACE):
+            self.stop = True
+
+        if self.stop == False:
+            return
+
         curr_object = self.environment.get_object(self.pos_x, self.pos_y)
 
         if curr_object.reset:
-            self.reset()
+            self.reset(curr_object)
             return
 
         action = self.decide_on_action(curr_object.id)
@@ -90,6 +102,7 @@ class Enviroment(GameObject):
         self.build_line_array(width, height, cols, rows)
 
         self.Baby = QAi(0, 0, self, 'Baby.png', BaseBotKeyboard)
+        # PlayerMatrixObject(3,3,self,'Baby.png', ArrowKeyboard)
         Candy(0, 2, self)
         Poison(2, 0, self)
         Death(1, 1, self)
