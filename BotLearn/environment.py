@@ -2,8 +2,8 @@ from help_classes.keyboard import KeyHelper, BotKeyboard, BaseBotKeyboard, Arrow
 from help_classes.base_game import GameObject
 from arcade import key
 from game_objects import PlayerMatrixObject, Start, Candy, Poison, Death, Success, Blank
-from arcade.draw_commands import draw_line, draw_circle_filled
-from arcade.color import BLACK, GREEN, RED, BLUE, METALLIC_SUNBURST
+from arcade.draw_commands import draw_line
+from arcade.color import BLACK
 import random
 import numpy as np
 
@@ -130,18 +130,6 @@ class Enviroment(GameObject):
         if curr_obj == 0 or curr_obj == None:
             return Blank(pos_x, pos_y, self)
         return self.EnvObjectLocations[pos_x, pos_y]
-
-    def reward(self, pos_x: int, pos_y: int):
-        curr_obj = self.EnvObjectLocations[pos_x, pos_y]
-        if curr_obj == 0 or curr_obj == None:
-            return -1
-        return self.EnvObjectLocations[pos_x, pos_y].reward
-
-    def state(self, pos_x: int, pos_y: int):
-        curr_obj = self.EnvObjectLocations[pos_x, pos_y]
-        if curr_obj == 0 or curr_obj == None:
-            return 0
-        return self.EnvObjectLocations[pos_x, pos_y].id
 
     def on_draw(self):
         for line in self.lines:
