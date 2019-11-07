@@ -51,8 +51,6 @@ class KeyHelper():
 
 class BaseKeyboard(ABC):
 
-    keys = None
-
     def __init__(self, **keys):
         self.keys = keys
         pass
@@ -68,7 +66,7 @@ class BaseKeyboard(ABC):
     @abstractmethod
     def is_key_releasing(self, key):
         pass
-
+    
     def __len__(self):
         return len(self.keys)
     
@@ -89,7 +87,7 @@ class PlayerKeyboard(BaseKeyboard):
 class BotKeyboard(BaseKeyboard):
 
     def __init__(self, **keys):
-        super().__init__(keys)
+        super().__init__(**keys)
         self.pressing_key = set()
         self.releasing_key = set()
     
@@ -97,60 +95,48 @@ class BotKeyboard(BaseKeyboard):
         return self.keys[key]
     
     def is_key_pressing(self, key):
-        return KeyHelper.is_pressing_key(self.keys[key])
-
+        return key in self.pressing_key
     def is_key_releasing(self, key):
-        return KeyHelper.is_releasing_key(self.keys[key])
+        return key in self.releasing_key
+    
+    def get_key_by_index(self, index: int):
+        return list(self.keys.keys())[index]
     
     def press_key(self, key: str):
 
-        if self.is_key_pressed_down(key):
+        if not self.is_key_pressed_down(key):
             self.pressing_key.add(key)
-        elif key in pressing_key:
+            self.releasing_key.discard(key)
+        else:
             self.pressing_key.discard(key)
 
         self.keys[key] = True
     
     def press_key_by_index(self, index: int):
-        temp = 0
-        for key in self.keys.keys:
-            if temp == index:
-                self.press_key(key)
-                return
+        self.press_key(self.get_key_by_index(index))
     
     def release_key(self, key: str):
 
-        if not self.is_key_pressed_down(key):
+        if self.is_key_pressed_down(key):
             self.releasing_key.add(key)
-        elif key in releasing_key:
+            self.pressing_key.discard(key)
+        else:
             self.releasing_key.discard(key)
 
         self.keys[key] = False
     
-    # def release_key_by_index(self, index: int):
-    #     self.release_key(self.keys.keys[index])
+    def release_key_by_index(self, index: int):
+        self.release_key(self.get_key_by_index(index))
     
-    # def press_all(self):
-    #     for key in self.keys.keys:
-    #         self.press_key(key)
+    def press_all(self):
+        for key in self.keys:
+            self.press_key(key)
     
     def release_all(self):
-        for key in self.keys.keys:
+        for key in self.keys:
             self.release_key(key)
-    
-    # def get_pressed_by_index(self):
-    #     pressed = []
-    #     num = 0
-    #     for key in self.keys.keys:
-    #         num += 1
-    #         pressed.append(num)
-        
-    #     return pressed
-    
-    # def __len__(self):
-    #     return len(self.keys)
 
-BasicBotKeyboard        = BotKeyboard(up = False, down = False, left = False, right = False)
 WASDKeyboard            = PlayerKeyboard(up = key.W, down = key.S, left = key.A, right = key.D)
 ArrowKeyboard           = PlayerKeyboard(up = key.UP, down = key.DOWN, left = key.LEFT, right = key.RIGHT)
+BasicBotKeyboard        = BotKeyboard(up = False, down = False, left = False, right = False)
 BotLeftRightKeyboard    = BotKeyboard(left = False, right = False)
