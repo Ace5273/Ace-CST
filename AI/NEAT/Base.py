@@ -1,9 +1,11 @@
-# from __future__ import annotations
+from __future__ import annotations
 from typing import List, overload
-from GeneNode import GeneNodeType, GeneNode, GeneConnection
+from Gene import GeneNodeType, GeneNode, GeneConnection
 import random
 
 class Genome():
+
+    global_innovation_number = 1
     
     def __init__(self):
         self.geneNodes      : List[GeneNode]        = []
@@ -129,24 +131,25 @@ class Genome():
         # Set a random weight
         if weight == None:
             weight = random.random()
-        
-        newGeneConnection = GeneConnection(inGeneNode, outGeneNode, weight, enabled)
 
         # Check if the connection exists
-        if self.__does_gene_connection_exists(newGeneConnection) :
+        if self.__does_gene_connection_nodes_exists(inGeneNode, outGeneNode):
             return
+        
+        newGeneConnection = GeneConnection(inGeneNode, outGeneNode, weight, enabled, innovationNumber= Genome.global_innovation_number)
+        Genome.global_innovation_number += 1
         
         # Add the connection
         self.connections.append(newGeneConnection)
     
-    def __add_connection_object(self, newGeneConnection : GeneConnection) -> None:
+    # def __add_connection_object(self, newGeneConnection : GeneConnection) -> None:
 
-        # Check if the connection exists
-        if self.__does_gene_connection_exists(newGeneConnection) :
-            return
+    #     # Check if the connection exists
+    #     if self.__does_gene_connection_exists(newGeneConnection) :
+    #         return
         
-        # Add the connection
-        self.connections.append(newGeneConnection)
+    #     # Add the connection
+    #     self.connections.append(newGeneConnection)
          
 
 
