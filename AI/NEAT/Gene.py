@@ -6,7 +6,7 @@ class GeneNodeType(IntEnum):
     """
         Represent the node gene type
     """
-    Sensor = auto()
+    Input = auto()
     Output = auto()
     Hidden = auto()
 
