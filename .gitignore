@@ -2,3 +2,4 @@
 .vscode/launch.json
 .vscode/settings.json
 AI/NEAT/.vscode/settings.json
+AI/NEAT/__pycache__/Gene.cpython-37.pyc
