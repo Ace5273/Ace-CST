@@ -56,25 +56,27 @@ class Genome():
         pass
 
 #region Existence Checks
-    def __does_gene_node_exists(self, geneNode: GeneNode) -> bool:
-        return all(geneNode
-                   for currGeneNode in self.connections
-                   if geneNode == currGeneNode)
+    def __does_gene_object_exists(self, geneNode: GeneNode) -> bool:
+        return geneNode in self.geneNodes[geneNode.type]
+        # all(geneNode
+        #            for currGeneNode in self.geneNodes
+        #            if geneNode == currGeneNode)
 
     def __does_gene_id_exists(self, geneNodeId: int) -> bool:
         return all(geneNodeId
                    for currGeneNode in self.connections
                    if geneNodeId == currGeneNode.id)
     
+    def __does_connection_object_exists(self, geneConnection: GeneConnection) -> bool:
+        return geneConnection in self.connections
+        # all(geneConnection
+        #            for currGeneConnection in self.connections
+        #            if geneConnection == currGeneConnection)
+    
     def __does_gene_connection_nodes_exists(self, inGeneNode: GeneNode, outGeneNode: GeneNode) -> bool:
         return all((inGeneNode, outGeneNode)
                    for currGeneConnection in self.connections
                    if inGeneNode == currGeneConnection.inGeneNode and outGeneNode == currGeneConnection.outGeneNode)
-
-    def __does_gene_connection_exists(self, geneConnection: GeneConnection) -> bool:
-        return all(geneConnection
-                   for currGeneConnection in self.connections
-                   if geneConnection == currGeneConnection)
 #endregion
 
 #region Adding Methods
@@ -87,9 +89,15 @@ class Genome():
 
     def add_node_object(self, geneNode: GeneNode) -> None:
 
-        if self.__does_gene_node_exists(geneNode):
+        # Check if the type exists in the dict
+        if geneNode.type not in self.geneNodes:
+            self.geneNodes[geneNode.type] : List[GeneNode] = []
+
+        # Check if the node exists in that list 
+        elif geneNode in self.geneNodes[geneNode.type]:
             return
 
+        # Add the node to to the gene nodes
         self.geneNodes[geneNode.type].append(geneNode)
 
     def add_connection(self, inGeneNode: GeneNode, outGeneNode: GeneNode, innovationNumber: int, weight: float = None, enabled: bool = True) -> None:
@@ -130,7 +138,7 @@ class Genome():
             return
 
         # Check if the connection exists
-        if self.__does_gene_connection_exists(geneConnection):
+        if self.__does_connection_object_exists(geneConnection):
             return
 
         # Add the connections in and out nodes
@@ -187,6 +195,16 @@ class Genome():
     @staticmethod
     def compatibility_distance(genome1: Genome, genome2: Genome) -> float:
 
+        """
+            Descirption:
+                This function check how much 2 genes
+                are compatible with each other
+            
+            Input:
+                1) genome1
+                2) genome2
+        """
+
         if genome1.empty and genome2.empty:
 
             # The compatibility distance is 0
@@ -199,7 +217,7 @@ class Genome():
         c2 = 1
         c3 = 1
 
-        # Tto help normalizes for genome size
+        # To help normalizes for genome size
         N = max(genome1.amount_of_genes, genome2.amount_of_genes)
 
         # Number of excess genes
