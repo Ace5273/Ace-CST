@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List, overload
-from Genome import Genome
+from genome import Genome
 # import random
 
 class Species():
