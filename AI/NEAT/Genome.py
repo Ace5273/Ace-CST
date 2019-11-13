@@ -1,147 +1,98 @@
 from __future__ import annotations
-from typing import List, overload
-from Gene import GeneNodeType, GeneNode, GeneConnection
+from typing import Dict, List
+from geneNode import GeneNode, GeneNodeType
+from geneConnection import GeneConnection
+from mutations import Mutations, Incrementer
 import random
+
+#region GeneID
+# class GeneID(Incrementer):
+#     """
+#         This class represent an innovation number
+#         so that the innovation number will be passed
+#         by reference and maintained
+#     """
+#     def __init__(self, startValue : int = 0):
+#         super().__init__(startValue)
+
+#endregion
 
 class Genome():
 
-    global_innovation_number = 1
-    
-    def __init__(self):
-        self.geneNodes      : List[GeneNode]        = []
-        self.connections    : List[GeneConnection]  = []
-    
+    def __init__(self, inputNumber : int = 0, outputNumber : int = 0, maxGeneId : int = 0):
+        
+        self.geneNodes      : Dict[GeneNodeType,List[GeneNode]] = {}
+        self.maxGeneId      : Incrementer                       = Incrementer(maxGeneId)
+        self.connections    : List[GeneConnection]              = []
+        self.initialize_network(inputNumber, outputNumber)
+
+    def initialize_network(self, inputNumber, outputNumber):
+
+        """
+            Initialize the network gene nodes
+        """
+
+        for _ in range(0,inputNumber):
+            self.add_node(GeneNodeType.Input)
+        for _ in range(0,outputNumber):
+            self.add_node(GeneNodeType.Output)
+
     @property
     def amount_of_genes(self):
         return len(self.connections)
-    
+
     def empty(self):
         return self.amount_of_genes == 0
     
-    def point_mutation(self, geneConnection : GeneConnection) -> None:
-        """
-            Desciption:
-                Randomly updates the weight of a selected connection gene
+    def calc_genome_output(self, inputs: List[float]):
+        
+        if len(inputs) != len(self.geneNodes[GeneNodeType.Input]):
+            raise Exception("Why would you do that!?!!? :(")
+        
+        for i in range(0, len(inputs)):
+            self.geneNodes[GeneNodeType.Input][i].value = inputs[i]
 
-            Input:
-                1) geneConnection - The gene connection to mutate
-        """
-        geneConnection.weight = random.random() * 4 - 2
+
+        pass
+
+#region Existence Checks
+    def __does_gene_node_exists(self, geneNode: GeneNode) -> bool:
+        return all(geneNode
+                   for currGeneNode in self.connections
+                   if geneNode == currGeneNode)
+
+    def __does_gene_id_exists(self, geneNodeId: int) -> bool:
+        return all(geneNodeId
+                   for currGeneNode in self.connections
+                   if geneNodeId == currGeneNode.id)
     
-    def enable_disable_mutation(self, geneConnection : GeneConnection) -> None:
-        """
-            Desciption:
-                Randomly enables and disables connection
-            
-            Input:
-                1) geneConnection - The gene connection to mutate
-        """
+    def __does_gene_connection_nodes_exists(self, inGeneNode: GeneNode, outGeneNode: GeneNode) -> bool:
+        return all((inGeneNode, outGeneNode)
+                   for currGeneConnection in self.connections
+                   if inGeneNode == currGeneConnection.inGeneNode and outGeneNode == currGeneConnection.outGeneNode)
 
-        geneConnection.enabled = random.random() > 0.5
-    
-    def link_mutation(self, inGeneNode : GeneNode, outGeneNode : GeneNode) -> None:
-        """
-            Description: 
-                This function mutates a new conection between 2 nodes
-            Input:
-                1) inGeneNode   - The in gene node 
-                2) outGeneNode  - The out gene node
-        """
+    def __does_gene_connection_exists(self, geneConnection: GeneConnection) -> bool:
+        return all(geneConnection
+                   for currGeneConnection in self.connections
+                   if geneConnection == currGeneConnection)
+#endregion
 
-        self.__add_connection(inGeneNode,outGeneNode, weight= random.random() * 4 - 2, enabled=True)
-    
-    def node_mutation(self, geneNodeId : int, toGeneConnection: GeneConnection) -> None:
-        
-        """
-            Desciption:
-                Mutates the genome by adding a node in the split of a given connection. 
-                The new connection leading into the new node receives a weight of 1.
-                The new connection leading out receives the same weight as the old connection.
-            
-            Input: 
-                1) geneNodeId
-                3) toGeneConnection - The connection to split
-        """
+#region Adding Methods
+    def add_node(self, geneNodeType: GeneNodeType) -> None:
 
-        if self.__does_gene_id_exists(geneNodeId):
-            return
-        
-        newGeneNode = GeneNode(geneNodeId, GeneNodeType.Hidden)
+        if geneNodeType not in self.geneNodes:
+            self.geneNodes[geneNodeType] : List[GeneNode] = []
 
-        if self.__does_gene_connection_nodes_exists(toGeneConnection.inGeneNode, newGeneNode):
-            return
-        
-        if self.__does_gene_connection_nodes_exists(newGeneNode, toGeneConnection.outGeneNode):
-            return
-        
-        self.__add_node_object(newGeneNode)        
-        
-        # Add the first conenction with 1 weight 
-        self.__add_connection(toGeneConnection.inGeneNode, newGeneNode, weight=1, enabled= True)
-        
-        # Add the seconed connection with the current weight
-        self.__add_connection(newGeneNode, toGeneConnection.outGeneNode, weight=toGeneConnection.weight, enabled= True)
-        
-        toGeneConnection.enabled = False
+        self.geneNodes[geneNodeType].append(GeneNode(self.maxGeneId(), geneNodeType))
 
-    
-    def __does_gene_node_exists(self, geneNode : GeneNode) -> bool:
-        return all(geneNode 
-                    for currGeneNode in self.connections
-                    if geneNode == currGeneNode)
-
-    def __does_gene_id_exists(self, geneNodeId : int) -> bool:
-        return all(geneNodeId 
-                    for currGeneNode in self.connections
-                    if geneNodeId == currGeneNode.id)
-
-
-    def __add_node(self, geneId : int, geneNodeType : GeneNodeType) -> None:
-
-        if self.__does_gene_id_exists(geneId):
-            return
-
-        self.geneNodes.append(GeneNode(geneId, geneNodeType))
-    
-    def __add_node_object(self, geneNode : GeneNode) -> None:
+    def add_node_object(self, geneNode: GeneNode) -> None:
 
         if self.__does_gene_node_exists(geneNode):
             return
 
-        self.geneNodes.append(geneNode)
+        self.geneNodes[geneNode.type].append(geneNode)
 
-
-    # def add_node_object(self, newGeneNode : GeneNode, newGeneConnection: GeneConnection) -> None:
-    #     """
-    #         Input:
-    #             1) newGeneNode - The new gene node
-    #             2) toGeneConnection - the connection to add the gene to
-    #     """
-
-    #     # The gene node needs to be new
-    #     if self.__does_gene_node_exists(newGeneNode):
-    #         return
-        
-    #     # The connection needed to exist
-    #     if not self.__does_gene_connection_exists(existedGeneConnection):
-    #         return
-        
-    #     self.geneNodes.append(newGeneNode)
-
-        
-    def __does_gene_connection_nodes_exists(self, inGeneNode : GeneNode, outGeneNode : GeneNode) -> bool:
-        return all((inGeneNode, outGeneNode)
-                    for currGeneConnection in self.connections
-                    if inGeneNode == currGeneConnection.inGeneNode and outGeneNode == currGeneConnection.outGeneNode)
-
-
-    def __does_gene_connection_exists(self, geneConnection : GeneConnection) -> bool:
-        return all(geneConnection 
-                    for currGeneConnection in self.connections
-                    if geneConnection == currGeneConnection)    
-    
-    def __add_connection(self, inGeneNode : GeneNode, outGeneNode : GeneNode, weight: float = None, enabled: bool = True) -> None:
-        
+    def add_connection(self, inGeneNode: GeneNode, outGeneNode: GeneNode, innovationNumber: int, weight: float = None, enabled: bool = True) -> None:
         """
             Description: 
                 This function add a conection between 2 nodes
@@ -155,20 +106,19 @@ class Genome():
 
         # Set a random weight
         if weight == None:
-            weight = random.random() * 4 - 2
+            weight = random.random() * 2 - 1
 
         # Check if the connection exists
         if self.__does_gene_connection_nodes_exists(inGeneNode, outGeneNode):
             return
-        
-        newGeneConnection = GeneConnection(inGeneNode, outGeneNode, weight, enabled, innovationNumber= Genome.global_innovation_number)
-        Genome.global_innovation_number += 1
-        
+
+        newGeneConnection = GeneConnection(
+            inGeneNode, outGeneNode, weight, enabled, innovationNumber=innovationNumber)
+
         # Add the connection
         self.connections.append(newGeneConnection)
-    
-    def __add_connection_object(self, geneConnection : GeneConnection) -> None:
-        
+
+    def add_connection_object(self, geneConnection: GeneConnection) -> None:
         """
             Description: 
                 This function add a conection 
@@ -182,61 +132,64 @@ class Genome():
         # Check if the connection exists
         if self.__does_gene_connection_exists(geneConnection):
             return
-        
+
         # Add the connections in and out nodes
-        self.__add_node_object(geneConnection.inGeneNode)
-        self.__add_node_object(geneConnection.outGeneNode)
-        
+        self.add_node_object(geneConnection.inGeneNode)
+        self.add_node_object(geneConnection.outGeneNode)
+
         # Add the connection
         self.connections.append(geneConnection)
-    
-    @staticmethod
-    def mating(genome1 : Genome, genome2 : Genome):
 
-        newGenome : Genome = Genome()
+#endregion
+
+    @staticmethod
+    def mating(genome1: Genome, genome2: Genome) -> Genome:
+
+        # Note: This might be prablomatic
+        newGenome: Genome = Genome()
 
         # Create iterators for the connections
         firstIter = iter(genome1.connections)
         SecondIter = iter(genome2.connections)
 
         # Get the instances
-        firstGeneInstance : GeneConnection = next(firstIter,None)
-        secondGeneInstance : GeneConnection = next(SecondIter,None)
+        firstGeneInstance: GeneConnection = next(firstIter, None)
+        secondGeneInstance: GeneConnection = next(SecondIter, None)
 
         # There are no genes to check
         while firstGeneInstance != None or secondGeneInstance != None:
 
-            # The genes match 
+            # The genes match
             if firstGeneInstance.innovation == secondGeneInstance.innovation:
 
                 # Take one randomly
                 if random.random() > 0.5:
-                    newGenome.__add_connection_object(firstGeneInstance)
+                    newGenome.add_connection_object(firstGeneInstance)
                 else:
-                    newGenome.__add_connection_object(secondGeneInstance)
-                
+                    newGenome.add_connection_object(secondGeneInstance)
+
                 # Advance to the next gene instances
-                firstGeneInstance = next(firstIter,None)
-                secondGeneInstance = next(SecondIter,None)
+                firstGeneInstance = next(firstIter, None)
+                secondGeneInstance = next(SecondIter, None)
 
             # Advance the lowest innovation gene
             elif firstGeneInstance.innovation > secondGeneInstance.innovation:
-                newGenome.__add_connection_object(secondGeneInstance)
-                secondGeneInstance = next(SecondIter,None)
+                newGenome.add_connection_object(secondGeneInstance)
+                secondGeneInstance = next(SecondIter, None)
 
             # Note: This condition is explicitly for biginners
             elif firstGeneInstance.innovation < secondGeneInstance.innovation:
-                newGenome.__add_connection_object(firstGeneInstance)
-                firstGeneInstance = next(firstIter,None)
-            
+                newGenome.add_connection_object(firstGeneInstance)
+                firstGeneInstance = next(firstIter, None)
+
         return newGenome
 
     @staticmethod
-    def compatibility_distance(genome1 : Genome, genome2 : Genome):
+    def compatibility_distance(genome1: Genome, genome2: Genome) -> float:
 
         if genome1.empty and genome2.empty:
 
-            # The compatibility distance is 0 
+            # The compatibility distance is 0
             # when the genomes are empty
             return 0
 
@@ -261,18 +214,18 @@ class Genome():
 
         # Amount of matching genes
         M = 0
-        
+
         # Create iterators for the connections
         firstIter = iter(genome1.connections)
         SecondIter = iter(genome2.connections)
 
         # get the instances
-        firstGeneInstance = next(firstIter,None)
-        secondGeneInstance = next(SecondIter,None)
+        firstGeneInstance = next(firstIter, None)
+        secondGeneInstance = next(SecondIter, None)
 
         # There are no genes to check
         while firstGeneInstance != None or secondGeneInstance != None:
-            
+
             # There is only excess genomes left
             if firstGeneInstance == None ^ secondGeneInstance == None:
                 E += 1
@@ -280,21 +233,22 @@ class Genome():
 
             # These genes match
             if firstGeneInstance.innovation == secondGeneInstance.innovation:
-                sumW = abs(firstGeneInstance.weight - secondGeneInstance.weight)
+                sumW = abs(firstGeneInstance.weight -
+                           secondGeneInstance.weight)
                 M += 1
 
                 # Advance the both genes instances
-                firstGeneInstance = next(firstIter,None)
-                secondGeneInstance = next(SecondIter,None)
-            
+                firstGeneInstance = next(firstIter, None)
+                secondGeneInstance = next(SecondIter, None)
+
             else:
 
                 # Advance the lowest innovation gene
                 if firstGeneInstance.innovation > secondGeneInstance.innovation:
-                    secondGeneInstance = next(SecondIter,None)
+                    secondGeneInstance = next(SecondIter, None)
                 else:
-                    firstGeneInstance = next(firstIter,None)
-                
+                    firstGeneInstance = next(firstIter, None)
+
                 # count him
                 D += 1
 
@@ -303,7 +257,5 @@ class Genome():
             avgW = 0
         else:
             avgW = sumW / M
-        
-        return c1 * E / N + c2 * D / N + c3 * avgW
 
-         
+        return c1 * E / N + c2 * D / N + c3 * avgW
