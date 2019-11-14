@@ -1,30 +1,18 @@
 from __future__ import annotations
 from typing import Dict, List
-from geneNode import GeneNode, GeneNodeType
+from geneNode import BaseGeneNode, ConnectedGeneNode, InputGeneNode, HiddenGeneNode, OutputGeneNode, GeneNodeType
 from geneConnection import GeneConnection
 from mutations import Mutations, Incrementer
 import random
 
-#region GeneID
-# class GeneID(Incrementer):
-#     """
-#         This class represent an innovation number
-#         so that the innovation number will be passed
-#         by reference and maintained
-#     """
-#     def __init__(self, startValue : int = 0):
-#         super().__init__(startValue)
-
-#endregion
-
 class Genome():
 
-    def __init__(self, inputNumber : int = 0, outputNumber : int = 0, maxGeneId : int = 0):
-        
-        self.geneNodes      : Dict[GeneNodeType,List[GeneNode]] = {}
-        self.maxGeneId      : Incrementer                       = Incrementer(maxGeneId)
-        self.connections    : List[GeneConnection]              = []
-        self.initialize_network(inputNumber, outputNumber)
+    def __init__(self, inputNumber : int, outputNumber : int):
+        self.inputNodes  : List[InputGeneNode]  = []
+        self.hiddenNodes : List[HiddenGeneNode] = []
+        self.outputNodes : List[OutputGeneNode] = []
+        self.maxGeneId   : Incrementer          = Incrementer(0)
+        self.initialize_network(inputNumber,outputNumber)
 
     def initialize_network(self, inputNumber, outputNumber):
 
@@ -33,27 +21,37 @@ class Genome():
         """
 
         for _ in range(0,inputNumber):
-            self.add_node(GeneNodeType.Input)
+            self.inputNodes.append(self.maxGeneId())
         for _ in range(0,outputNumber):
-            self.add_node(GeneNodeType.Output)
+            self.outputNodes.append(self.maxGeneId())
 
-    @property
-    def amount_of_genes(self):
-        return len(self.connections)
 
-    def empty(self):
-        return self.amount_of_genes == 0
+# class Genome():
+
+#     def __init__(self, inputNumber : int = 0, outputNumber : int = 0, maxGeneId : int = 0):
+        
+#         self.geneNodes      : Dict[GeneNodeType,List[BaseGeneNode]] = {}
+#         self.maxGeneId      : Incrementer                       = Incrementer(maxGeneId)
+#         # self.connections    : List[GeneConnection]              = []
+#         self.initialize_network(inputNumber, outputNumber)
+
+#     @property
+#     def amount_of_genes(self):
+#         return len(self.connections)
+
+#     def empty(self):
+#         return self.amount_of_genes == 0
     
-    def calc_genome_output(self, inputs: List[float]):
+#     def calc_genome_output(self, inputs: List[float]):
         
-        if len(inputs) != len(self.geneNodes[GeneNodeType.Input]):
-            raise Exception("Why would you do that!?!!? :(")
+#         if len(inputs) != len(self.geneNodes[GeneNodeType.Input]):
+#             raise Exception("Why would you do that!?!!? :(")
         
-        for i in range(0, len(inputs)):
-            self.geneNodes[GeneNodeType.Input][i].value = inputs[i]
+#         for i in range(0, len(inputs)):
+#             self.geneNodes[GeneNodeType.Input][i].value = inputs[i]
 
 
-        pass
+#         pass
 
 #region Existence Checks
     def __does_gene_object_exists(self, geneNode: GeneNode) -> bool:

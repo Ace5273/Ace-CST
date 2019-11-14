@@ -11,6 +11,18 @@ class Incrementer():
         self.__value += 1
         return self.__value
 
+#region GeneID
+# class GeneID(Incrementer):
+#     """
+#         This class represent an innovation number
+#         so that the innovation number will be passed
+#         by reference and maintained
+#     """
+#     def __init__(self, startValue : int = 0):
+#         super().__init__(startValue)
+
+#endregion
+
 class Mutations():
 
     @staticmethod
