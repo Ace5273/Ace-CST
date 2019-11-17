@@ -1,197 +1,221 @@
 from __future__ import annotations
 from typing import Dict, List
-from geneNode import BaseGeneNode, ConnectedGeneNode, InputGeneNode, HiddenGeneNode, OutputGeneNode, GeneNodeType
+from geneNode import BaseGeneNode, InputGeneNode, HiddenGeneNode, OutputGeneNode, GeneNodeType
 from geneConnection import GeneConnection
-from mutations import Mutations, Incrementer
+from mutations import Incrementer
 import random
+import itertools 
+
 
 class Genome():
 
-    def __init__(self, inputNumber : int, outputNumber : int):
-        self.inputNodes  : List[InputGeneNode]  = []
-        self.hiddenNodes : List[HiddenGeneNode] = []
-        self.outputNodes : List[OutputGeneNode] = []
-        self.maxGeneId   : Incrementer          = Incrementer(0)
-        self.initialize_network(inputNumber,outputNumber)
+    def __init__(self, inputNumber: int, outputNumber: int):
 
-    def initialize_network(self, inputNumber, outputNumber):
+        self.inputNumber: int = inputNumber
+        self.outputNumber: int = outputNumber
+        self.inputNodes: List[InputGeneNode] = []
+        self.connected_gene_nodes: Dict[BaseGeneNode,List[GeneConnection]] = {}
+        # self.connected_gene_nodes: Dict[BaseGeneNode,List[GeneConnection]] = {}
 
+        self.initialize_network(inputNumber, outputNumber)
+
+    def initialize_network(self, inputNumber : int, outputNumber : int) -> None:
         """
             Initialize the network gene nodes
         """
 
-        for _ in range(0,inputNumber):
-            self.inputNodes.append(self.maxGeneId())
-        for _ in range(0,outputNumber):
-            self.outputNodes.append(self.maxGeneId())
+        for _ in range(0, inputNumber):
+            self.inputNodes.append(InputGeneNode())
+        for i in range(0, outputNumber):
+            self.connected_gene_nodes[OutputGeneNode(i)] = []
 
+    def add_hidden_gene_node(self, hiddenGeneNode : HiddenGeneNode) -> None:
+        """
+            Description:
+                Add a hidden node to the genome
 
-# class Genome():
+            Inputs:
+                1) hiddenGeneNode
+        """
 
-#     def __init__(self, inputNumber : int = 0, outputNumber : int = 0, maxGeneId : int = 0):
-        
-#         self.geneNodes      : Dict[GeneNodeType,List[BaseGeneNode]] = {}
-#         self.maxGeneId      : Incrementer                       = Incrementer(maxGeneId)
-#         # self.connections    : List[GeneConnection]              = []
-#         self.initialize_network(inputNumber, outputNumber)
-
-#     @property
-#     def amount_of_genes(self):
-#         return len(self.connections)
-
-#     def empty(self):
-#         return self.amount_of_genes == 0
-    
-#     def calc_genome_output(self, inputs: List[float]):
-        
-#         if len(inputs) != len(self.geneNodes[GeneNodeType.Input]):
-#             raise Exception("Why would you do that!?!!? :(")
-        
-#         for i in range(0, len(inputs)):
-#             self.geneNodes[GeneNodeType.Input][i].value = inputs[i]
-
-
-#         pass
-
-#region Existence Checks
-    def __does_gene_object_exists(self, geneNode: GeneNode) -> bool:
-        return geneNode in self.geneNodes[geneNode.type]
-        # all(geneNode
-        #            for currGeneNode in self.geneNodes
-        #            if geneNode == currGeneNode)
-
-    def __does_gene_id_exists(self, geneNodeId: int) -> bool:
-        return all(geneNodeId
-                   for currGeneNode in self.connections
-                   if geneNodeId == currGeneNode.id)
-    
-    def __does_connection_object_exists(self, geneConnection: GeneConnection) -> bool:
-        return geneConnection in self.connections
-        # all(geneConnection
-        #            for currGeneConnection in self.connections
-        #            if geneConnection == currGeneConnection)
-    
-    def __does_gene_connection_nodes_exists(self, inGeneNode: GeneNode, outGeneNode: GeneNode) -> bool:
-        return all((inGeneNode, outGeneNode)
-                   for currGeneConnection in self.connections
-                   if inGeneNode == currGeneConnection.inGeneNode and outGeneNode == currGeneConnection.outGeneNode)
-#endregion
-
-#region Adding Methods
-    def add_node(self, geneNodeType: GeneNodeType) -> None:
-
-        if geneNodeType not in self.geneNodes:
-            self.geneNodes[geneNodeType] : List[GeneNode] = []
-
-        self.geneNodes[geneNodeType].append(GeneNode(self.maxGeneId(), geneNodeType))
-
-    def add_node_object(self, geneNode: GeneNode) -> None:
-
-        # Check if the type exists in the dict
-        if geneNode.type not in self.geneNodes:
-            self.geneNodes[geneNode.type] : List[GeneNode] = []
-
-        # Check if the node exists in that list 
-        elif geneNode in self.geneNodes[geneNode.type]:
+        if hiddenGeneNode in self.connected_gene_nodes.keys():
             return
 
-        # Add the node to to the gene nodes
-        self.geneNodes[geneNode.type].append(geneNode)
+        self.connected_gene_nodes[hiddenGeneNode] = []
 
-    def add_connection(self, inGeneNode: GeneNode, outGeneNode: GeneNode, innovationNumber: int, weight: float = None, enabled: bool = True) -> None:
+    def add_gene_connection(self, geneConnection : GeneConnection) -> None:
         """
-            Description: 
-                This function add a conection between 2 nodes
+            Description:
+                Add a gene connection to the genome
+
+            Inputs:
+                1) geneConnection
+        """
+
+        if not geneConnection.outGeneNode in self.connected_gene_nodes.keys():
+            self.add_hidden_gene_node(geneConnection.outGeneNode)
+
+        self.connected_gene_nodes[geneConnection.outGeneNode].append(geneConnection)
+    
+    def calc_output_vec(self, inputValues : List[float]) -> List[float]:
+        
+        # Setting the input nodes values
+        for i in range(0, len(inputValues)):
+            self.inputNodes[i].value = inputValues[i]
+        
+        # Get the lists sorted by innovations
+        tempConnectionList = list(itertools.chain(*self.connected_gene_nodes.values()))
+        tempConnectionList.sort(key= lambda x: -x.innovation)
+
+        # The list of nodes sorted by apperance in connections
+        checkValueOfNodeList : List[BaseGeneNode] = []
+
+        # The hidden node list
+        hiddenNodeList : List[BaseGeneNode] = list(filter(lambda x: x.type == GeneNodeType.Output, self.connected_gene_nodes.keys()))
+
+        for connection in tempConnectionList:
+
+            # Only handle the hidden nodes that doesn't exists
+            if connection.outGeneNode.type != GeneNodeType.Output \
+               and not connection.outGeneNode in checkValueOfNodeList:
+                checkValueOfNodeList.insert(0,connection.outGeneNode)
+        
+
+        outputValueList : List[float] = [] 
+
+        # Run through the nodes to check
+        for node in itertools.chain(checkValueOfNodeList,hiddenNodeList):
+            
+            # Run through each connection of each node
+            for connectionToNode in self.connected_gene_nodes[node]:
+                if connectionToNode.enabled:
+                    node.value += connectionToNode.weight * connectionToNode.inGeneNode.value    
+
+            # Note: Apply function
+
+            if node.type == GeneNodeType.Output:
+                outputValueList.insert(node.id ,node.value)
+        
+        return outputValueList
+
+    # region Mutations
+    
+    @staticmethod
+    def point_mutation(geneConnection: GeneConnection) -> None:
+        """
+            Desciption:
+                Randomly updates the weight of a selected connection gene
+
             Input:
-                1) inGeneNode   - The in gene node 
+                1) geneConnection - The gene connection to mutate
+        """
+        geneConnection.weight = random.random() * 2 - 1
+
+    @staticmethod
+    def enable_disable_mutation(geneConnection: GeneConnection) -> None:
+        """
+            Desciption:
+                Randomly enables and disables connection
+
+            Input:
+                1) geneConnection - The gene connection to mutate
+        """
+
+        geneConnection.enabled = random.random() > 0.5
+
+    @staticmethod
+    def link_mutation(genome: Genome, inGeneNode: BaseGeneNode, outGeneNode: BaseGeneNode, innovation: Incrementer) -> None:
+        """
+            Description:
+                This function mutates a new conection between 2 nodes
+            Input:
+                1) inGeneNode   - The in gene node
                 2) outGeneNode  - The out gene node
-                3) weight       - The weight on the connection 
-                4) enabled      - Does the connection is enable?
-
         """
 
-        # Set a random weight
-        if weight == None:
-            weight = random.random() * 2 - 1
+        genome.add_gene_connection(GeneConnection(
+            inGeneNode, outGeneNode, innovation, weight=0.5, enabled=True))
 
-        # Check if the connection exists
-        if self.__does_gene_connection_nodes_exists(inGeneNode, outGeneNode):
-            return
+    @staticmethod
+    def node_mutation(genome: Genome, toGeneConnection: GeneConnection, innovation: Incrementer) -> None:
 
-        newGeneConnection = GeneConnection(
-            inGeneNode, outGeneNode, weight, enabled, innovationNumber=innovationNumber)
-
-        # Add the connection
-        self.connections.append(newGeneConnection)
-
-    def add_connection_object(self, geneConnection: GeneConnection) -> None:
         """
-            Description: 
-                This function add a conection 
+            Desciption:
+                Mutates the genome by adding a node in the split of a given connection.
+                The new connection leading into the new node receives a weight of 1.
+                The new connection leading out receives the same weight as the old connection.
+
             Input:
-                1) geneConnection - The in gene connection
+                1) geneNodeId
+                3) toGeneConnection - The connection to split
         """
 
-        if geneConnection == None:
-            return
+        newGeneNode = HiddenGeneNode()
 
-        # Check if the connection exists
-        if self.__does_connection_object_exists(geneConnection):
-            return
+        genome.add_hidden_gene_node(newGeneNode)
 
-        # Add the connections in and out nodes
-        self.add_node_object(geneConnection.inGeneNode)
-        self.add_node_object(geneConnection.outGeneNode)
+        # Add the first conenction with 1 weight
+        genome.add_gene_connection(GeneConnection(toGeneConnection.inGeneNode,
+                                    newGeneNode,
+                                    innovation, 
+                                    weight=1, 
+                                    enabled=True))
 
-        # Add the connection
-        self.connections.append(geneConnection)
+        # Add the seconed connection with the current weight
+        genome.add_gene_connection(GeneConnection(newGeneNode, 
+                                    toGeneConnection.outGeneNode,
+                                    innovation,
+                                    weight=toGeneConnection.weight, 
+                                    enabled=True))
 
-#endregion
+        toGeneConnection.enabled = False
+    
+    # endregion
+    
+    # @staticmethod
+    # def mating(genome1: Genome, genome2: Genome) -> Genome:
+
+    #     # Note: This might be prablomatic
+    #     newGenome: Genome = Genome(genome1.inputNodes, genome1.outputNumber)
+
+    #     # Create iterators for the connections
+    #     firstIter = iter(genome1.connections)
+    #     SecondIter = iter(genome2.connections)
+
+    #     # Get the instances
+    #     firstGeneInstance: GeneConnection = next(firstIter, None)
+    #     secondGeneInstance: GeneConnection = next(SecondIter, None)
+
+    #     # There are no genes to check
+    #     while firstGeneInstance != None or secondGeneInstance != None:
+
+    #         # The genes match
+    #         if firstGeneInstance.innovation == secondGeneInstance.innovation:
+
+    #             # Take one randomly
+    #             if random.random() > 0.5:
+    #                 newGenome.add_connection_object(firstGeneInstance)
+    #             else:
+    #                 newGenome.add_connection_object(secondGeneInstance)
+
+    #             # Advance to the next gene instances
+    #             firstGeneInstance = next(firstIter, None)
+    #             secondGeneInstance = next(SecondIter, None)
+
+    #         # Advance the lowest innovation gene
+    #         elif firstGeneInstance.innovation > secondGeneInstance.innovation:
+    #             newGenome.add_connection_object(secondGeneInstance)
+    #             secondGeneInstance = next(SecondIter, None)
+
+    #         # Note: This condition is explicitly for biginners
+    #         elif firstGeneInstance.innovation < secondGeneInstance.innovation:
+    #             newGenome.add_connection_object(firstGeneInstance)
+    #             firstGeneInstance = next(firstIter, None)
+
+    #     return newGenome
 
     @staticmethod
-    def mating(genome1: Genome, genome2: Genome) -> Genome:
-
-        # Note: This might be prablomatic
-        newGenome: Genome = Genome()
-
-        # Create iterators for the connections
-        firstIter = iter(genome1.connections)
-        SecondIter = iter(genome2.connections)
-
-        # Get the instances
-        firstGeneInstance: GeneConnection = next(firstIter, None)
-        secondGeneInstance: GeneConnection = next(SecondIter, None)
-
-        # There are no genes to check
-        while firstGeneInstance != None or secondGeneInstance != None:
-
-            # The genes match
-            if firstGeneInstance.innovation == secondGeneInstance.innovation:
-
-                # Take one randomly
-                if random.random() > 0.5:
-                    newGenome.add_connection_object(firstGeneInstance)
-                else:
-                    newGenome.add_connection_object(secondGeneInstance)
-
-                # Advance to the next gene instances
-                firstGeneInstance = next(firstIter, None)
-                secondGeneInstance = next(SecondIter, None)
-
-            # Advance the lowest innovation gene
-            elif firstGeneInstance.innovation > secondGeneInstance.innovation:
-                newGenome.add_connection_object(secondGeneInstance)
-                secondGeneInstance = next(SecondIter, None)
-
-            # Note: This condition is explicitly for biginners
-            elif firstGeneInstance.innovation < secondGeneInstance.innovation:
-                newGenome.add_connection_object(firstGeneInstance)
-                firstGeneInstance = next(firstIter, None)
-
-        return newGenome
-
-    @staticmethod
-    def compatibility_distance(genome1: Genome, genome2: Genome) -> float:
+    def compatibility_distance(genome1: Genome, genome2: Genome, c1 : float = 1, c2 : float = 1, c3 : float = 1) -> float:
 
         """
             Descirption:
@@ -203,17 +227,17 @@ class Genome():
                 2) genome2
         """
 
-        if genome1.empty and genome2.empty:
+        # if genome1.empty and genome2.empty:
 
-            # The compatibility distance is 0
-            # when the genomes are empty
-            return 0
+        #     # The compatibility distance is 0
+        #     # when the genomes are empty
+        #     return 0
 
-        # These are the coefficients that allow us to adjust the
-        # importance of the 3 vectors
-        c1 = 1
-        c2 = 1
-        c3 = 1
+        # # These are the coefficients that allow us to adjust the
+        # # importance of the 3 vectors
+        # c1 = c1
+        # c2 = c2
+        # c3 = c3
 
         # To help normalizes for genome size
         N = max(genome1.amount_of_genes, genome2.amount_of_genes)
@@ -230,10 +254,18 @@ class Genome():
 
         # Amount of matching genes
         M = 0
+        genome1.connected_gene_nodes
+
+        # Get the lists sorted by innovations
+        tempFirstList = list(itertools.chain(*genome1.connected_gene_nodes.values()))
+        tempFirstList.sort(key= lambda x: x.innovation)
+
+        tempSecondList = list(itertools.chain(*genome2.connected_gene_nodes.values()))
+        tempSecondList.sort(key= lambda x: x.innovation)
 
         # Create iterators for the connections
-        firstIter = iter(genome1.connections)
-        SecondIter = iter(genome2.connections)
+        firstIter = iter(tempFirstList)
+        SecondIter = iter(tempSecondList)
 
         # get the instances
         firstGeneInstance = next(firstIter, None)
@@ -275,3 +307,36 @@ class Genome():
             avgW = sumW / M
 
         return c1 * E / N + c2 * D / N + c3 * avgW
+
+if __name__ == "__main__":
+    
+    genome = Genome(3, 3)
+    innovation = Incrementer(0)
+
+    inputFirst = genome.inputNodes[0]
+    inputSecond = genome.inputNodes[1]
+    inputThird = genome.inputNodes[2]
+
+    outputlist = list(genome.connected_gene_nodes.keys())
+
+    outputFirst = outputlist[0]
+    outputSecond = outputlist[1]
+    outputThird = outputlist[2]
+    # outputlist.insert(-1, outputThird)
+
+    genome.add_gene_connection(GeneConnection(inputFirst, outputFirst,innovation, 0.1))
+    genome.add_gene_connection(GeneConnection(inputSecond, outputSecond,innovation, 0.2))
+    genome.add_gene_connection(GeneConnection(inputThird, outputThird,innovation, 0.3))
+
+    connectionList = list(itertools.chain(*genome.connected_gene_nodes.values()))
+    Genome.node_mutation(genome, connectionList[0], innovation)
+
+    outputlist = list(genome.connected_gene_nodes.keys())
+    Genome.link_mutation(genome, inputSecond, outputlist[3], innovation)
+
+    print(genome.calc_output_vec([0.1,0.2,0.3]))
+
+    # connectionList = list(itertools.chain(*genome.connected_gene_nodes.values()))
+    # connectionList.sort(key= lambda x: x.innovation)
+
+    pass
